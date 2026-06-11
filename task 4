@@ -1,0 +1,77 @@
+import os
+import cv2
+import numpy as np
+
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+
+# Dataset Path
+dataset_path = "C:/Users/meivi/Downloads/archive/leapGestRecog"
+
+X = []
+y = []
+
+# Load Images
+for subject in os.listdir(dataset_path):
+
+    subject_path = os.path.join(dataset_path, subject)
+
+    if os.path.isdir(subject_path):
+
+        for gesture in os.listdir(subject_path):
+
+            gesture_path = os.path.join(subject_path, gesture)
+
+            if os.path.isdir(gesture_path):
+
+                for image_name in os.listdir(gesture_path):
+
+                    image_path = os.path.join(
+                        gesture_path,
+                        image_name
+                    )
+
+                    img = cv2.imread(
+                        image_path,
+                        cv2.IMREAD_GRAYSCALE
+                    )
+
+                    if img is not None:
+
+                        img = cv2.resize(img, (64, 64))
+                        img = img.flatten()
+
+                        X.append(img)
+                        y.append(gesture)
+
+# Convert to NumPy Arrays
+X = np.array(X)
+y = np.array(y)
+
+print("Total Images:", len(X))
+
+# Split Dataset
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+# Train SVM Model
+svm_model = SVC(kernel='linear')
+
+svm_model.fit(X_train, y_train)
+
+# Prediction
+y_pred = svm_model.predict(X_test)
+
+# Accuracy
+accuracy = accuracy_score(y_test, y_pred)
+
+print("Accuracy:", accuracy)
+
+# Classification Report
+print(classification_report(y_test, y_pred))
